@@ -105,11 +105,15 @@ function drawFront(x, who, step, b, mode, acc) {
     rect(x, 7, 9 + b, 2, 1, mode === 'hug' ? '#6a3a2e' : P.skinD);
     rect(x, 3, 9 + b, 2, 1, P.beardD); rect(x, 11, 9 + b, 2, 1, P.beardD);
     // очки
-    rect(x, 4, 5 + b, 4, 3, P.glass); rect(x, 9, 5 + b, 4, 3, P.glass);
-    rect(x, 5, 6 + b, 2, 1, P.lens); rect(x, 10, 6 + b, 2, 1, P.lens);
-    rect(x, 8, 6 + b, 1, 1, P.glass);
-    if (mode === 'hug') { rect(x, 5, 6 + b, 2, 1, P.glass); rect(x, 10, 6 + b, 2, 1, P.glass); } else {
-      dot(x, 6, 6 + b, P.eye); dot(x, 11, 6 + b, P.eye);
+    // тонкая оправа: прозрачные линзы, чтобы были видны глаза (не похоже на солнечные очки)
+    for (const gx of [4, 9]) {
+      rect(x, gx, 5 + b, 4, 1, P.glass); dot(x, gx, 7 + b, P.glass); dot(x, gx + 3, 7 + b, P.glass);
+      dot(x, gx, 6 + b, P.glass); dot(x, gx + 3, 6 + b, P.glass);
+      rect(x, gx + 1, 6 + b, 2, 1, '#fbfdff');
+    }
+    rect(x, 8, 5 + b, 1, 1, P.glass);
+    if (mode === 'hug') { rect(x, 5, 6 + b, 2, 1, P.hairD); rect(x, 10, 6 + b, 2, 1, P.hairD); } else {
+      dot(x, 6, 6 + b, P.eye); dot(x, 10, 6 + b, P.eye);
     }
   }
   if (who === 'masha') {
