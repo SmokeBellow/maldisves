@@ -16,7 +16,7 @@ header::after{content:"";position:absolute;left:0;right:0;bottom:-14px;height:10
 .htxt{flex:1}.lvl{font-size:.8rem;opacity:.95}.pts{font-weight:900;font-size:1.15rem}
 .count{font-size:1.8rem;font-weight:900;background:#fff;color:var(--ink);border:3px solid var(--ink);border-radius:16px;padding:0 12px;box-shadow:0 3px 0 var(--ink)}
 .count small{font-size:.9rem;opacity:.6}
-.av{display:inline-block;width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid var(--ring,#fff);box-shadow:0 0 0 2.5px var(--ink);flex:none;vertical-align:middle}.av svg{width:100%;height:100%;display:block;image-rendering:pixelated}
+.av{display:inline-block;width:44px;height:44px;border-radius:50%;overflow:hidden;border:3px solid var(--ring,#fff);box-shadow:0 0 0 2.5px var(--ink);flex:none;vertical-align:middle}.av img{width:100%;height:100%;display:block;image-rendering:pixelated;object-fit:cover}
 .av.tiny{width:22px;height:22px;border-width:2px;box-shadow:0 0 0 1.5px var(--ink)}
 .av.huge{width:112px;height:112px;border-width:5px;box-shadow:0 0 0 3px var(--ink);animation:float 4s ease-in-out infinite}
 .av.by{position:absolute;left:4px;bottom:4px;width:22px;height:22px;border-width:2px;box-shadow:0 0 0 1.5px var(--ink)}
@@ -163,4 +163,8 @@ nav button.on{opacity:1;background:var(--sand)}nav button.on span{transform:tran
 
 .unseen .art-wrap.mom,.bcell:not(.on) .art-wrap.mom{filter:grayscale(1) opacity(.45)}
 
+.fa{animation:fa 1.1s steps(1) infinite;animation-delay:var(--dly,0s)}.fb{animation:fb 1.1s steps(1) infinite;animation-delay:var(--dly,0s)}
+@keyframes fa{0%{opacity:1}50%{opacity:0}}@keyframes fb{0%{opacity:0}50%{opacity:1}}
+.fullspr{position:relative;display:block;width:108px;height:186px;image-rendering:pixelated}.fullspr img{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+image{image-rendering:pixelated}
 .beat{animation:beat 1.2s infinite;transform-box:fill-box;transform-origin:center}

@@ -5,17 +5,17 @@ import { getImage, prefetchAll } from './images.js';
 import { startSync, syncNow, syncEnabled, status } from './sync.js';
 import { artSVG } from './art.js';
 import { SCENE_LIST, sceneAt, islandHour, postcardSVG } from './scenes.js';
-import { avatarSVG, avatarBg } from './pixel.js';
+import { headURL, frames } from './chars.js';
 
 const $app = document.getElementById('app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ui = { tab: 'home', cat: 'all', q: '', sheet: null, real: false, preview: null, scroll: {} };
 
 const PEOPLE = {
-  'Маша': { key: 'masha', verb: 'Отметила', ring: '#ff8fa3' },
-  'Антон': { key: 'anton', verb: 'Отметил', ring: '#4aa3ff' },
+  'Маша': { key: 'masha', verb: 'Отметила', ring: '#ff8fa3', bg: '#ffd6e0' },
+  'Антон': { key: 'anton', verb: 'Отметил', ring: '#4aa3ff', bg: '#cfe6ff' },
 };
-const avatar = (name, cls = '') => PEOPLE[name] ? `<span class="av ${cls}" title="${esc(name)}" style="--ring:${PEOPLE[name].ring};background:${avatarBg(PEOPLE[name].key)}">${avatarSVG(PEOPLE[name].key)}</span>` : '';
+const avatar = (name, cls = '') => PEOPLE[name] ? `<span class="av ${cls}" title="${esc(name)}" style="--ring:${PEOPLE[name].ring};background:${PEOPLE[name].bg}"><img src="${headURL(PEOPLE[name].key)}" alt=""></span>` : '';
 const stars = r => '★'.repeat(RARITY[r].stars) + '☆'.repeat(5 - RARITY[r].stars);
 const art = s => `<div class="photo"><div class="art-wrap${s.cat === 'moments' ? ' mom' : ''}">${artSVG(s.id)}</div></div>`;
 const fmtDay = d => d ? `${d.slice(6)}.${d.slice(4, 6)}` : '';
@@ -29,7 +29,7 @@ function renderSetup() {
       <h1>Мальдивы<br><small>наш покедекс</small></h1>
       <p class="sub">Кто сейчас держит телефон?</p>
       <div class="who">
-        ${Object.entries(PEOPLE).map(([n, p]) => `<button class="whobtn" data-who="${n}">${avatar(n, 'huge')}<b>${n}</b></button>`).join('')}
+        ${Object.entries(PEOPLE).map(([n, p]) => `<button class="whobtn" data-who="${n}"><span class="fullspr">${frames(p.key, 'idle').map((u, i) => `<img class="${i ? 'fb' : 'fa'}" src="${u}" alt="">`).join('')}</span><b>${n}</b></button>`).join('')}
       </div>
       <p class="hint">Коллекция у вас общая. Отметки обоих видны сразу.</p>
     </div>`;
