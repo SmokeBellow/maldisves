@@ -37,7 +37,7 @@
 
 1. Смёржить ветку в `main` — workflow `.github/workflows/pages.yml` задеплоит сайт.
 2. В репозитории **Settings → Pages → Source: GitHub Actions** (один раз).
-3. Адрес будет `https://<user>.github.io/maldisves/`.
+3. Адрес будет `https://smokebellow.github.io/maldives/`.
 
 ## 3. Установка на телефон
 
