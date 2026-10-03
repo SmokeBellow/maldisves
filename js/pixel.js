@@ -2,6 +2,8 @@
 // рисуются в SVG без сглаживания. Цвета и черты можно править в PAL.
 const W = 24, H = 28, CX = 12;
 const OUT = '#2b2a3a';
+const SMOOTH = 1; // сколько раз сглаживать углы (Scale2x): 0 = грубые пиксели, 2 = очень мягко
+const F = 2 ** SMOOTH;
 
 const PAL = {
   masha: {
@@ -93,6 +95,20 @@ function accessory(g, acc) {
   }
 }
 
+// Scale2x: удваиваем разрешение и сглаживаем диагонали, не размывая цвета
+function scale2x(g) {
+  const h = g.length, w = g[0].length, at = (x, y) => (x < 0 || y < 0 || x >= w || y >= h ? null : g[y][x]);
+  const out = Array.from({ length: h * 2 }, () => Array(w * 2).fill(null));
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const P = g[y][x], A = at(x, y - 1), B = at(x + 1, y), C = at(x - 1, y), D = at(x, y + 1);
+    out[y * 2][x * 2] = C === A && C !== D && A !== B ? A : P;
+    out[y * 2][x * 2 + 1] = A === B && A !== C && B !== D ? B : P;
+    out[y * 2 + 1][x * 2] = D === C && D !== B && C !== A ? C : P;
+    out[y * 2 + 1][x * 2 + 1] = B === D && B !== A && D !== C ? D : P;
+  }
+  return out;
+}
+
 const cache = {};
 function build(who, { acc = '', rows = H } = {}) {
   const key = `${who}|${acc}|${rows}`;
@@ -106,14 +122,16 @@ function build(who, { acc = '', rows = H } = {}) {
     if ([[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => g[y + dy]?.[x + dx])) o[y][x] = OUT;
   }
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (o[y][x]) g[y][x] = OUT;
+  let big = g;
+  for (let i = 0; i < SMOOTH; i++) big = scale2x(big);
   // руны по цветам
   const by = {};
-  for (let y = 0; y < Math.min(rows, H); y++) {
+  for (let y = 0; y < Math.min(rows * F, H * F); y++) {
     let x = 0;
-    while (x < W) {
-      const c = g[y][x];
+    while (x < W * F) {
+      const c = big[y][x];
       if (!c) { x++; continue; }
-      let w = 1; while (x + w < W && g[y][x + w] === c) w++;
+      let w = 1; while (x + w < W * F && big[y][x + w] === c) w++;
       (by[c] ||= []).push(`M${x} ${y}h${w}v1h-${w}z`);
       x += w;
     }
@@ -123,11 +141,11 @@ function build(who, { acc = '', rows = H } = {}) {
 
 // персонаж в сцене: центр головы в (0,0)
 export function charSVG(who, { acc = '', body: withBody = true, k = 4.4 } = {}) {
-  return `<g shape-rendering="crispEdges" transform="translate(${-CX * k} ${-10 * k}) scale(${k})">${build(who, { acc, rows: withBody ? H : 18 })}</g>`;
+  return `<g shape-rendering="crispEdges" transform="translate(${-CX * k} ${-10 * k}) scale(${k / F})">${build(who, { acc, rows: withBody ? H : 18 })}</g>`;
 }
 
 // круглая аватарка-голова
 export function avatarSVG(who) {
-  return `<svg viewBox="2 1 20 19" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">${build(who, { rows: 18 })}</svg>`;
+  return `<svg viewBox="${2 * F} ${F} ${20 * F} ${19 * F}" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">${build(who, { rows: 18 })}</svg>`;
 }
 export const avatarBg = who => PAL[who].bg;

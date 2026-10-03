@@ -1,4 +1,4 @@
-const VERSION = 'v4';
+const VERSION = 'v5';
 const SHELL = `shell-${VERSION}`;
 const IMGS = 'imgs';
 const FILES = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'css/style.css', 'icons/icon.svg',
