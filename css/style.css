@@ -168,3 +168,32 @@ nav button.on{opacity:1;background:var(--sand)}nav button.on span{transform:tran
 .fullspr{position:relative;display:block;width:108px;height:186px;image-rendering:pixelated}.fullspr img{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
 image{image-rendering:pixelated}
 .beat{animation:beat 1.2s infinite;transform-box:fill-box;transform-origin:center}
+
+/* вики */
+.scanbtn{margin-bottom:10px;background:var(--sea)}
+.wgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.wcard{position:relative;border:3px solid var(--ink);border-radius:22px;background:#fff;padding:6px 6px 8px;display:flex;flex-direction:column;gap:5px;box-shadow:0 4px 0 var(--ink);text-align:center;animation:pop .4s var(--bounce) both}
+.wcard:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.wcard .nm{font-weight:900;font-size:.88rem;line-height:1.1;min-height:2em;display:flex;align-items:center;justify-content:center}
+.wphoto,.wbig{position:relative;width:100%;aspect-ratio:4/3;border-radius:16px;overflow:hidden;border:2.5px solid var(--ink);background:radial-gradient(circle at 35% 30%,#d9f6fc,#8ddbea);display:grid;place-items:center}
+.wbig{aspect-ratio:1;max-width:340px;margin:0 auto 6px;border-radius:24px;border-width:3px}
+.wphoto .art-wrap,.wbig .art-wrap{width:52%;height:62%;opacity:.55}
+.wphoto img,.wbig img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s}
+.wphoto img.loaded,.wbig img.loaded{opacity:1}
+.wphoto img.loaded~.nopic,.wbig img.loaded~.nopic{display:none}
+.nopic{display:none;position:absolute;bottom:4px;right:6px;font-size:.62rem;opacity:.6;font-weight:800}
+.nophoto .nopic{display:block}.nophoto .art-wrap{opacity:1}
+.src{font-size:.72rem;opacity:.6;margin:2px 0 10px}
+
+/* скан */
+.sheet.scan{text-align:center}
+.spic{width:180px;height:180px;object-fit:cover;border:3px solid var(--ink);border-radius:22px;margin:4px auto 10px;display:block;box-shadow:0 4px 0 var(--ink)}
+.scanbar{margin:8px 0}.btn.big{display:block;text-align:center}
+.sres{display:flex;flex-direction:column;gap:8px;margin:8px 0 12px}
+.srow{display:flex;gap:6px;align-items:stretch}
+.sbtn{flex:1;display:flex;align-items:center;gap:8px;border:3px solid var(--ink);border-radius:18px;background:#fff;padding:6px 10px;text-align:left;box-shadow:0 3px 0 var(--ink)}
+.sart{width:44px;height:44px;flex:none}.sname{flex:1;font-weight:900;line-height:1.1}.sname small{display:block;font-size:.68rem;opacity:.6;font-weight:700}
+.spct{position:relative;width:62px;height:24px;border:2px solid var(--ink);border-radius:12px;background:#e3eef1;overflow:hidden;display:grid;place-items:center;flex:none}
+.spct i{position:absolute;left:0;top:0;bottom:0;background:var(--sun)}.spct b{position:relative;font-size:.74rem}
+.swiki{border:3px solid var(--ink);border-radius:16px;background:var(--sand);padding:0 10px;font-weight:900;font-size:.8rem}
+nav button{font-size:.62rem}nav button span{font-size:1.25rem}

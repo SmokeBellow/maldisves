@@ -84,3 +84,21 @@ export async function prefetchAll(items, onProgress) {
     onProgress(++done, titles.length);
   }));
 }
+
+// Ленивая подгрузка фото: картинка запрашивается, когда карточка попадает в экран
+export function lazyPhotos(root) {
+  const imgs = [...root.querySelectorAll('img[data-wiki]:not([data-done])')];
+  const fail = img => img.closest('.wphoto, .wbig')?.classList.add('nophoto');
+  const load = img => {
+    img.dataset.done = '1';
+    getImage(img.dataset.wiki, img.dataset.ru).then(url => {
+      if (!url) return fail(img);
+      img.onload = () => img.classList.add('loaded');
+      img.onerror = () => fail(img);
+      img.src = url;
+    });
+  };
+  if (!('IntersectionObserver' in window)) return imgs.forEach(load);
+  const io = new IntersectionObserver(es => es.forEach(e => { if (e.isIntersecting) { io.unobserve(e.target); load(e.target); } }), { rootMargin: '300px' });
+  imgs.forEach(i => io.observe(i));
+}

@@ -1,7 +1,8 @@
 import { CATS, RARITY, LOCATIONS, SPECIES, BY_ID, POINTS } from './data.js';
 import { state, onChange, setSettings, setEntry, live, todayKey } from './store.js';
 import { isSeen, seenCount, seenOnDay, bingoCard, bingoMarks, bingoLines, questsFor, questDone, score, badges } from './game.js';
-import { getImage, prefetchAll } from './images.js';
+import { prefetchAll, lazyPhotos } from './images.js';
+import { identify, scanReady } from './scan.js';
 import { startSync, syncNow, syncEnabled, status } from './sync.js';
 import { artSVG } from './art.js';
 import { SCENE_LIST, sceneAt, islandHour, postcardSVG } from './scenes.js';
@@ -9,7 +10,7 @@ import { headURL, frames } from './chars.js';
 
 const $app = document.getElementById('app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ui = { tab: 'home', cat: 'all', q: '', sheet: null, real: false, preview: null, scroll: {} };
+const ui = { tab: 'home', cat: 'all', q: '', wcat: 'all', wq: '', sheet: null, wiki: null, scan: null, preview: null, scroll: {} };
 
 const PEOPLE = {
   'Маша': { key: 'masha', verb: 'Отметила', ring: '#ff8fa3', bg: '#ffd6e0' },
@@ -186,13 +187,13 @@ function sheetView() {
   return `<div class="overlay" data-close="1"><div class="sheet r-${s.rar}">
     <button class="x" data-close="1">✕</button>
     <div class="hero-art ${e ? 'seen' : 'unseen'}">
-      ${ui.real ? `<div class="real"><img data-wiki="${esc(s.wiki)}" data-ru="${esc(s.ru)}" alt=""><span class="emo">Загружаю фото…</span></div>` : art(s)}
+      ${art(s)}
     </div>
     <h2>${esc(s.ru)}</h2>
     <div class="meta"><span class="rar">${stars(s.rar)} ${RARITY[s.rar].name}</span><span>+${RARITY[s.rar].pts} очк.</span></div>
     <p class="fact">${esc(s.fact)}</p>
     <p class="where">📍 Где искать: ${esc(s.spot)}</p>
-    <button class="link" id="realtoggle">${ui.real ? '← Вернуть рисунок' : '📷 Как выглядит в жизни'}</button>
+    <button class="link" id="gowiki">📷 Фото и описание в Вики</button>
     ${e
       ? `<div class="seenbox">${avatar(e.by, 'tiny')} ${(PEOPLE[e.by]?.verb) || 'Отметил(а)'} <b>${esc(e.by)}</b>, ${fmtDay(e.d)}${e.loc ? ' · ' + esc(e.loc) : ''}</div>
          <button class="btn ghost" id="unmark">Снять отметку</button>`
@@ -201,27 +202,71 @@ function sheetView() {
   </div></div>`;
 }
 
+// ---------- Вики (фотографии) ----------
+const wphoto = (s, cls = 'wphoto') => `<div class="${cls}"><div class="art-wrap${s.cat === 'moments' ? ' mom' : ''}">${artSVG(s.id)}</div><img data-wiki="${esc(s.wiki)}" data-ru="${esc(s.ru)}" alt="${esc(s.ru)}"><span class="nopic">фото нет</span></div>`;
+function wikiView() {
+  const q = ui.wq.trim().toLowerCase();
+  const list = SPECIES.filter(s => (ui.wcat === 'all' || s.cat === ui.wcat) && (!q || s.ru.toLowerCase().includes(q) || s.wiki.toLowerCase().includes(q)));
+  const chips = [['all', null, 'Все'], ...Object.entries(CATS).map(([k, c]) => [k, CAT_ART[k], c.name])]
+    .map(([k, a, n]) => `<button class="chip ${ui.wcat === k ? 'on' : ''}" data-wcat="${k}"><span class="ci">${a ? artSVG(a) : '🌊'}</span>${n}</button>`).join('');
+  return `
+    <h2>Вики</h2>
+    <p class="sub">Фотографии всех существ из каталога. Отметки в Дексе не меняются.</p>
+    <button class="btn scanbtn" data-scanopen="1">📷 Скан по фото: угадать, кого видели</button>
+    <input id="search" data-wiki-search="1" class="search" type="search" placeholder="🔍 Поиск по Вики" value="${esc(ui.wq)}">
+    <div class="chips">${chips}</div>
+    <div class="wgrid">${list.map(s => `<button class="wcard" data-wid="${s.id}">${wphoto(s)}<span class="nm">${esc(s.ru)}</span>${isSeen(s.id) ? '<span class="tick">✓</span>' : ''}</button>`).join('') || '<p class="empty">Ничего не найдено</p>'}</div>`;
+}
+function wikiSheet() {
+  const s = BY_ID[ui.wiki];
+  if (!s) return '';
+  const e = live('seen', s.id);
+  return `<div class="overlay" data-close="1"><div class="sheet r-${s.rar}">
+    <button class="x" data-close="1">✕</button>
+    ${wphoto(s, 'wbig')}
+    <h2>${esc(s.ru)}</h2>
+    <div class="meta"><span class="rar">${stars(s.rar)} ${RARITY[s.rar].name}</span><span>${esc(CATS[s.cat].name)}</span></div>
+    <p class="fact">${esc(s.fact)}</p>
+    <p class="where">📍 Где искать: ${esc(s.spot)}</p>
+    <p class="src">Фото: Википедия (${esc(s.wiki)})</p>
+    ${e ? `<div class="seenbox">${avatar(e.by, 'tiny')} ${(PEOPLE[e.by]?.verb) || 'Отметил(а)'} <b>${esc(e.by)}</b>, ${fmtDay(e.d)}</div>` : ''}
+    <button class="btn" id="opendex">${e ? 'Открыть в Дексе' : 'Отметить в Дексе'}</button>
+  </div></div>`;
+}
+
+// ---------- скан по фото ----------
+function scanSheet() {
+  const sc = ui.scan;
+  if (!sc) return '';
+  let body;
+  if (sc.step === 'loading') body = `<p class="sub">${esc(sc.msg || 'Загружаю нейросеть…')}</p><div class="bar scanbar"><i id="scanbar" style="width:${sc.pct || 0}%"></i></div><p class="hint">Один раз скачивается модель. Дальше работает быстрее. Фото остаётся на телефоне.</p>`;
+  else if (sc.step === 'result') body = `<p class="sub">Похоже на (нажмите, чтобы открыть):</p><div class="sres">${sc.results.map((r, i) => `<div class="srow"><button class="sbtn" data-id="${r.species.id}"><span class="sart">${artSVG(r.species.id)}</span><span class="sname">${esc(r.species.ru)}<small>${isSeen(r.species.id) ? '✓ уже в Дексе' : 'ещё не отмечено'}</small></span><span class="spct"><i style="width:${Math.max(4, Math.round(r.score * 100))}%"></i><b>${Math.round(r.score * 100)}%</b></span></button><button class="swiki" data-wid="${r.species.id}">Вики</button></div>`).join('')}</div><p class="hint">Это подсказка, а не гарантия. Для точности снимайте крупнее и при хорошем свете.</p>`;
+  else if (sc.step === 'error') body = `<p class="sub bad">${esc(sc.msg)}</p>`;
+  else body = `<p class="sub">Сфотографируйте существо или выберите снимок. Нейросеть работает на телефоне и сравнит его с каталогом.${scanReady() ? '' : '<br><b>Первый раз нужно скачать модель (около 150 МБ), лучше по Wi-Fi.</b>'}</p>`;
+  return `<div class="overlay" data-close="1"><div class="sheet scan">
+    <button class="x" data-close="1">✕</button><h2>📷 Скан по фото</h2>
+    ${sc.preview ? `<img class="spic" src="${sc.preview}" alt="">` : ''}
+    ${body}
+    <label class="btn big" for="scanfile">${sc.step === 'result' || sc.step === 'error' ? 'Другое фото' : 'Сделать или выбрать фото'}</label>
+    <input id="scanfile" type="file" accept="image/*" hidden>
+  </div></div>`;
+}
+
 // ---------- каркас ----------
-const TABS = [['home', '🏝️', 'Дом'], ['dex', '📖', 'Декс'], ['bingo', '🎲', 'Бинго'], ['quests', '🎯', 'Задания'], ['us', '💑', 'Мы']];
+const TABS = [['home', '🏝️', 'Дом'], ['dex', '📖', 'Декс'], ['wiki', '📷', 'Вики'], ['bingo', '🎲', 'Бинго'], ['quests', '🎯', 'Задания'], ['us', '💑', 'Мы']];
 
 function render() {
   if (!state.me || !PEOPLE[state.me]) return renderSetup();
   const prev = document.querySelector('main');
   if (prev) ui.scroll[ui.tab] = prev.scrollTop;
   const search = document.activeElement?.id === 'search';
-  const views = { home: homeView, dex: dexView, bingo: bingoView, quests: questsView, us: usView };
+  const views = { home: homeView, dex: dexView, wiki: wikiView, bingo: bingoView, quests: questsView, us: usView };
   $app.innerHTML = `${header()}<main class="tab-${ui.tab}">${views[ui.tab]()}</main>
     <nav>${TABS.map(([k, e, n]) => `<button class="${ui.tab === k ? 'on' : ''}" data-tab="${k}"><span>${e}</span>${n}</button>`).join('')}</nav>
-    ${sheetView()}`;
+    ${sheetView()}${wikiSheet()}${scanSheet()}`;
   document.querySelector('main').scrollTop = ui.scroll[ui.tab] || 0;
   if (search) { const el = document.getElementById('search'); el.focus(); el.setSelectionRange(99, 99); }
-  const real = document.querySelector('img[data-wiki]');
-  if (real) getImage(real.dataset.wiki, real.dataset.ru).then(url => {
-    if (!url) return (real.nextElementSibling.textContent = 'Фото не нашлось');
-    real.onload = () => { real.classList.add('loaded'); real.nextElementSibling.remove(); };
-    real.onerror = () => (real.nextElementSibling.textContent = 'Фото не загрузилось');
-    real.src = url;
-  });
+  lazyPhotos($app);
 }
 
 function celebrate(s) {
@@ -236,16 +281,19 @@ function celebrate(s) {
 
 // ---------- события ----------
 $app.addEventListener('click', ev => {
-  const t = ev.target.closest('[data-who],[data-tab],[data-cat],[data-id],[data-close],[data-loc],[data-bidx],[data-quest],[data-clock],[data-clockreset],button[id]');
+  const t = ev.target.closest('[data-who],[data-tab],[data-cat],[data-wcat],[data-wid],[data-scanopen],[data-id],[data-close],[data-loc],[data-bidx],[data-quest],[data-clock],[data-clockreset],button[id]');
   if (!t) return;
   if (t.dataset.who) { setSettings({ me: t.dataset.who }); ui.tab = 'home'; syncNow(); return; }
   if (t.dataset.clock) { ui.preview = ui.preview === null ? (SCENE_LIST.indexOf(sceneAt(islandHour())) + 1) % SCENE_LIST.length : (ui.preview + 1) % SCENE_LIST.length; return render(); }
   if (t.dataset.clockreset) { ui.preview = null; return render(); }
-  if (t.dataset.tab) { ui.tab = t.dataset.tab; ui.sheet = null; ui.real = false; return render(); }
+  if (t.dataset.tab) { ui.tab = t.dataset.tab; ui.sheet = null; ui.wiki = null; ui.scan = null; return render(); }
+  if (t.dataset.wcat) { ui.wcat = t.dataset.wcat; return render(); }
+  if (t.dataset.wid) { ui.scan = null; ui.wiki = t.dataset.wid; return render(); }
+  if (t.dataset.scanopen) { ui.scan = { step: 'pick' }; return render(); }
   if (t.dataset.cat) { ui.cat = t.dataset.cat; return render(); }
-  if (t.dataset.close && (ev.target === t || t.classList.contains('x'))) { ui.sheet = null; ui.real = false; return render(); }
+  if (t.dataset.close && (ev.target === t || t.classList.contains('x'))) { ui.sheet = null; ui.wiki = null; ui.scan = null; return render(); }
   if (t.dataset.loc) { setSettings({ lastLoc: state.lastLoc === t.dataset.loc ? '' : t.dataset.loc }); return; }
-  if (t.dataset.id && !t.closest('.sheet')) { ui.sheet = t.dataset.id; ui.real = false; return render(); }
+  if (t.dataset.id && (!t.closest('.sheet') || t.closest('.scan'))) { ui.scan = null; ui.sheet = t.dataset.id; return render(); }
   if (t.dataset.bidx !== undefined) {
     const key = `d${todayKey()}_${t.dataset.bidx}`;
     return setEntry('bingo', key, { del: !!live('bingo', key) });
@@ -258,12 +306,13 @@ $app.addEventListener('click', ev => {
     case 'mark': {
       const s = BY_ID[ui.sheet];
       setEntry('seen', s.id, { d: todayKey(), loc: state.lastLoc || '', del: false });
-      ui.sheet = null; ui.real = false; render(); celebrate(s); syncNow(); break;
+      ui.sheet = null; render(); celebrate(s); syncNow(); break;
     }
     case 'unmark':
       if (confirm('Снять отметку?')) { setEntry('seen', ui.sheet, { d: '', loc: '', del: true }); ui.sheet = null; render(); syncNow(); }
       break;
-    case 'realtoggle': ui.real = !ui.real; render(); break;
+    case 'gowiki': ui.wiki = ui.sheet; ui.sheet = null; render(); break;
+    case 'opendex': ui.tab = 'dex'; ui.sheet = ui.wiki; ui.wiki = null; render(); break;
     case 'offline': {
       const out = document.getElementById('offprog');
       prefetchAll(SPECIES.map(s => ({ wiki: s.wiki, ru: s.ru })), (d, n) => { out.textContent = `Загружено ${d}/${n}`; })
@@ -275,7 +324,29 @@ $app.addEventListener('click', ev => {
   }
 });
 $app.addEventListener('input', ev => {
-  if (ev.target.id === 'search') { ui.q = ev.target.value; render(); }
+  if (ev.target.id === 'search') { if (ev.target.dataset.wikiSearch) ui.wq = ev.target.value; else ui.q = ev.target.value; render(); }
+});
+
+$app.addEventListener('change', async ev => {
+  if (ev.target.id !== 'scanfile' || !ev.target.files[0]) return;
+  const file = ev.target.files[0];
+  const preview = URL.createObjectURL(file);
+  if (!scanReady() && !confirm('Для скана один раз скачается нейросеть (около 150 МБ). Лучше по Wi-Fi. Продолжить?')) return;
+  ui.scan = { step: 'loading', preview, pct: 0, msg: 'Загружаю нейросеть…' };
+  render();
+  let last = 0;
+  try {
+    const results = await identify(file, p => {
+      if (p.status === 'progress' && p.progress != null) {
+        ui.scan.pct = Math.round(p.progress); ui.scan.msg = 'Скачиваю модель: ' + (p.file || '');
+        const bar = document.getElementById('scanbar'); if (bar) bar.style.width = ui.scan.pct + '%';
+      } else if (Date.now() - last > 400 && ui.scan?.step === 'loading') { last = Date.now(); ui.scan.msg = 'Готовлю модель…'; }
+    });
+    ui.scan = { step: 'result', preview, results };
+  } catch (e) {
+    ui.scan = { step: 'error', preview, msg: navigator.onLine ? 'Не удалось запустить распознавание. Попробуйте ещё раз.' : 'Нужен интернет, чтобы скачать модель.' };
+  }
+  render();
 });
 
 onChange(() => { if (state.me) render(); });
