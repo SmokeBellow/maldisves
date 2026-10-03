@@ -186,7 +186,7 @@ function sheetView() {
   return `<div class="overlay" data-close="1"><div class="sheet r-${s.rar}">
     <button class="x" data-close="1">✕</button>
     <div class="hero-art ${e ? 'seen' : 'unseen'}">
-      ${ui.real ? `<div class="real"><img data-wiki="${esc(s.wiki)}" alt=""><span class="emo">Загружаю фото…</span></div>` : art(s)}
+      ${ui.real ? `<div class="real"><img data-wiki="${esc(s.wiki)}" data-ru="${esc(s.ru)}" alt=""><span class="emo">Загружаю фото…</span></div>` : art(s)}
     </div>
     <h2>${esc(s.ru)}</h2>
     <div class="meta"><span class="rar">${stars(s.rar)} ${RARITY[s.rar].name}</span><span>+${RARITY[s.rar].pts} очк.</span></div>
@@ -216,7 +216,7 @@ function render() {
   document.querySelector('main').scrollTop = ui.scroll[ui.tab] || 0;
   if (search) { const el = document.getElementById('search'); el.focus(); el.setSelectionRange(99, 99); }
   const real = document.querySelector('img[data-wiki]');
-  if (real) getImage(real.dataset.wiki).then(url => {
+  if (real) getImage(real.dataset.wiki, real.dataset.ru).then(url => {
     if (!url) return (real.nextElementSibling.textContent = 'Фото не нашлось');
     real.onload = () => { real.classList.add('loaded'); real.nextElementSibling.remove(); };
     real.onerror = () => (real.nextElementSibling.textContent = 'Фото не загрузилось');
@@ -266,7 +266,7 @@ $app.addEventListener('click', ev => {
     case 'realtoggle': ui.real = !ui.real; render(); break;
     case 'offline': {
       const out = document.getElementById('offprog');
-      prefetchAll([...new Set(SPECIES.map(s => s.wiki))], (d, n) => { out.textContent = `Загружено ${d}/${n}`; })
+      prefetchAll(SPECIES.map(s => ({ wiki: s.wiki, ru: s.ru })), (d, n) => { out.textContent = `Загружено ${d}/${n}`; })
         .then(() => { out.textContent += ' · готово, фото доступны без сети'; });
       break;
     }

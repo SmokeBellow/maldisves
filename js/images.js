@@ -16,13 +16,31 @@ export function cachedUrl(title) {
   return null;
 }
 
-async function fetchUrl(title) {
+const big = u => u.replace(/\/(\d+)px-/, '/480px-');
+async function viaSummary(title) {
   const r = await fetch(api(title));
-  if (!r.ok) throw new Error(r.status);
+  if (!r.ok) return null;
   const j = await r.json();
-  let url = j.thumbnail?.source || j.originalimage?.source;
+  return j.thumbnail?.source || j.originalimage?.source || null;
+}
+// поиск по статьям: берём первую подходящую статью, у которой есть картинка
+async function viaSearch(lang, query) {
+  const q = new URLSearchParams({ action: 'query', format: 'json', origin: '*', generator: 'search', gsrsearch: query, gsrlimit: '6',
+    prop: 'pageimages', piprop: 'thumbnail', pithumbsize: '480', redirects: '1' });
+  const r = await fetch(`https://${lang}.wikipedia.org/w/api.php?${q}`);
+  if (!r.ok) return null;
+  const pages = Object.values((await r.json()).query?.pages || {}).filter(p => p.thumbnail).sort((a, b) => a.index - b.index);
+  return pages[0]?.thumbnail.source || null;
+}
+
+async function fetchUrl(title, ru) {
+  let url = null;
+  for (const step of [() => viaSummary(title), () => viaSearch('en', title), () => ru && viaSearch('ru', ru)]) {
+    try { url = await step(); } catch {}
+    if (url) break;
+  }
   if (!url) throw new Error('no image');
-  url = url.replace(/\/(\d+)px-/, '/480px-');
+  url = big(url);
   mem.set(title, url);
   try { localStorage.setItem(KEY + title, url); } catch {}
   return url;
@@ -32,14 +50,14 @@ function pump() {
   while (active < 4 && queue.length) {
     const job = queue.shift();
     active++;
-    fetchUrl(job.title).then(job.resolve, () => job.resolve(null)).finally(() => { active--; pump(); });
+    fetchUrl(job.title, job.ru).then(job.resolve, () => job.resolve(null)).finally(() => { active--; pump(); });
   }
 }
 
-export function getImage(title) {
+export function getImage(title, ru = '') {
   const c = cachedUrl(title);
   if (c) return Promise.resolve(c);
-  return new Promise(resolve => { queue.push({ title, resolve }); pump(); });
+  return new Promise(resolve => { queue.push({ title, ru, resolve }); pump(); });
 }
 
 // Подставить фото во все <img data-wiki>, пока без картинки показывается эмодзи
@@ -56,10 +74,11 @@ export function hydrate(root) {
 }
 
 // Загрузить всё заранее (на вилле, пока есть Wi-Fi)
-export async function prefetchAll(titles, onProgress) {
+export async function prefetchAll(items, onProgress) {
   let done = 0;
-  await Promise.all(titles.map(async t => {
-    const url = await getImage(t);
+  const titles = items;
+  await Promise.all(items.map(async ({ wiki, ru }) => {
+    const url = await getImage(wiki, ru);
     if (url) await new Promise(res => { const i = new Image(); i.onload = i.onerror = res; i.src = url; });
     onProgress(++done, titles.length);
   }));
