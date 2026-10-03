@@ -1,5 +1,6 @@
 // Локальное состояние + слияние с удалённым (last-write-wins по каждой записи).
-const LS = 'maldisves.v1';
+import { ROOM } from '../config.js';
+const LS = 'maldisves.v2';
 export const MAPS = ['seen', 'bingo', 'quests'];
 
 const blank = () => ({ me: '', room: '', lastLoc: '', data: { seen: {}, bingo: {}, quests: {} }, dirty: {} });
@@ -13,6 +14,7 @@ function load() {
 }
 
 export const state = load();
+state.room = ROOM;
 const listeners = new Set();
 export const onChange = fn => listeners.add(fn);
 const emit = () => listeners.forEach(fn => fn());
