@@ -1,9 +1,9 @@
-const VERSION = 'v2';
+const VERSION = 'v3';
 const SHELL = `shell-${VERSION}`;
 const IMGS = 'imgs';
 const FILES = ['./', 'index.html', 'config.js', 'manifest.webmanifest', 'css/style.css', 'icons/icon.svg',
-  'js/app.js', 'js/data.js', 'js/store.js', 'js/sync.js', 'js/game.js', 'js/images.js', 'js/art.js', 'js/scenes.js',
-  'img/masha.jpg', 'img/anton.jpg', 'img/couple.jpg', 'fonts/nunito-cyrillic-wght-normal.woff2', 'fonts/nunito-latin-wght-normal.woff2',
+  'js/app.js', 'js/data.js', 'js/store.js', 'js/sync.js', 'js/game.js', 'js/images.js', 'js/art.js', 'js/scenes.js', 'js/pixel.js',
+  'fonts/nunito-cyrillic-wght-normal.woff2', 'fonts/nunito-latin-wght-normal.woff2',
   'icons/icon-192.png'];
 
 self.addEventListener('install', e => {

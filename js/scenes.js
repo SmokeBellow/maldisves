@@ -1,5 +1,6 @@
 // Главные сцены по времени суток (время на Мальдивах, UTC+5).
 import { artSVG, INK } from './art.js';
+import { charSVG } from './pixel.js';
 
 const ST = `stroke="${INK}" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"`;
 const ST2 = `stroke="${INK}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"`;
@@ -9,10 +10,7 @@ export function islandHour(d = new Date()) {
 }
 
 // ---------- детали ----------
-const defs = `<defs>
-  <clipPath id="clipM"><circle cx="0" cy="0" r="34"/></clipPath>
-  <clipPath id="clipA"><circle cx="0" cy="0" r="34"/></clipPath>
-</defs>`;
+const defs = '';
 const skyRect = (id, a, b, h = 360) => `<defs><linearGradient id="${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs><rect width="400" height="${h}" fill="url(#${id})"/>`;
 const waves = (y, c, c2, cls = 'waveA') =>
   `<g class="${cls}"><path d="M0 ${y} ${'q12.5 -9 25 0 t25 0 '.repeat(40)} V380 H0Z" fill="${c}"/><path d="M0 ${y + 10} ${'q12.5 -9 25 0 t25 0 '.repeat(40)}" fill="none" stroke="${c2}" stroke-width="3" opacity=".7"/></g>`;
@@ -26,19 +24,9 @@ const starsSky = n => Array.from({ length: n }, (_, i) => `<circle class="twinkl
 const island = (x, y, w = 170) => `<path d="M${x - w / 2} ${y} Q${x} ${y - 30} ${x + w / 2} ${y} Z" fill="#f6dfa4" ${ST}/>`;
 const villa = (x, y, lit) => `<g transform="translate(${x} ${y})"><path d="M0 0 L60 -34 L120 0 Z" fill="#8a5f3d" ${ST}/><rect x="10" y="0" width="100" height="46" fill="#f6e7c8" ${ST}/><rect x="22" y="12" width="22" height="22" rx="3" fill="${lit ? '#ffd45e' : '#9be7ff'}" ${ST2}/><rect x="74" y="12" width="22" height="22" rx="3" fill="${lit ? '#ffd45e' : '#9be7ff'}" ${ST2}/><path d="M-6 46 H126 M0 46 v26 M60 46 v26 M120 46 v26" stroke="${INK}" stroke-width="4"/></g>`;
 
-const SKIN = { masha: { shirt: '#e8b9a6', ring: '#ff8fa3' }, anton: { shirt: '#f1e6d6', ring: '#4aa3ff' } };
-function person(who, x, y, { extra = '', under = '', cls = 'bob', delay = 0, scale = 1, body = true } = {}) {
-  const c = SKIN[who];
-  return `<g class="${cls}" style="animation-delay:${delay}s"><g transform="translate(${x} ${y}) scale(${scale})">
-    ${under}
-    ${body ? `<path d="M-44 80 Q-44 36 0 34 Q44 36 44 80 Z" fill="${c.shirt}" ${ST}/><path d="M-12 38 Q0 52 12 38" fill="none" ${ST2}/>` : ''}
-    <g clip-path="url(#clip${who === 'masha' ? 'M' : 'A'})"><image href="img/${who}.jpg" x="-34" y="-34" width="68" height="68" preserveAspectRatio="xMidYMid slice"/></g>
-    <circle r="34" fill="none" stroke="${c.ring}" stroke-width="5"/><circle r="36.5" fill="none" stroke="${INK}" stroke-width="2.5"/>
-    ${extra}
-  </g></g>`;
+function person(who, x, y, { acc = '', cls = 'bob', delay = 0, scale = 1, body = true } = {}) {
+  return `<g class="${cls}" style="animation-delay:${delay}s"><g transform="translate(${x} ${y}) scale(${scale})">${charSVG(who, { acc, body })}</g></g>`;
 }
-const maskOn = `<g><rect x="-27" y="-15" width="54" height="22" rx="10" fill="#9be7ff" fill-opacity=".45" ${ST}/><path d="M-27 -4 H-36 M27 -4 H36" stroke="${INK}" stroke-width="3"/><path d="M30 -8 Q44 -26 40 -52" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/><path d="M30 -8 Q44 -26 40 -52" fill="none" stroke="#ffb23d" stroke-width="3" stroke-linecap="round"/><circle cx="40" cy="-54" r="4" fill="#ff6b6b" ${ST2}/></g>`;
-const sleepMask = `<g><rect x="-30" y="-14" width="60" height="20" rx="9" fill="#ff9ec0" ${ST}/><path d="M-20 -3 q6 6 12 0 M8 -3 q6 6 12 0" fill="none" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"/></g>`;
 const zzz = (x, y) => `<g class="zzz"><text x="${x}" y="${y}" font-size="26" font-weight="900" fill="#fff" stroke="${INK}" stroke-width="1.5" paint-order="stroke">Z</text><text x="${x + 18}" y="${y - 20}" font-size="19" font-weight="900" fill="#fff" stroke="${INK}" stroke-width="1.2" paint-order="stroke">z</text><text x="${x + 32}" y="${y - 36}" font-size="14" font-weight="900" fill="#fff" stroke="${INK}" stroke-width="1" paint-order="stroke">z</text></g>`;
 const swim = (id, y, size, delay, dur, flip = false) =>
   `<g class="swim" style="--y:${y}px;animation-duration:${dur}s;animation-delay:-${delay + dur * 0.35}s"><svg x="0" y="0" width="${size}" height="${size}" viewBox="0 0 120 120" style="overflow:visible"><g transform="${flip ? 'translate(120 0) scale(-1 1)' : ''}">${artSVG(id).replace(/^<svg[^>]*>|<\/svg>$/g, '')}</g></svg></g>`;
@@ -61,7 +49,7 @@ const S = {
     <rect y="170" width="400" height="200" fill="#4cc3d6"/>${skyRect('sW', '#5fd3e0', '#1a8fa6', 360).replace('<rect width="400" height="360"', '<rect y="190" width="400" height="170"')}
     ${waves(176, '#5fd3e0', '#c9f4fa')}${swim('parrot', 255, 54, 0, 15)}${swim('butterfly', 300, 40, 6, 11, true)}${swim('anthias', 235, 34, 3, 13)}
     ${bubbles}${reef}
-    ${person('masha', 120, 172, { extra: maskOn, delay: .3, body: false })}${person('anton', 280, 172, { extra: maskOn, delay: 0, body: false })}
+    ${person('masha', 120, 172, { acc: 'snorkel', delay: .3, body: false })}${person('anton', 280, 172, { acc: 'snorkel', delay: 0, body: false })}
     ${waves(196, '#4cc3d6', '#c9f4fa', 'waveB').replace('fill="#4cc3d6"', 'fill="#4cc3d6" fill-opacity=".55"')}`),
   breakfast: () => wrap(`${skyRect('sB', '#bdeefa', '#fff4d6', 360)}${sun(330, 50, 24)}${cloud(20, 36, 1)}
     ${waves(160, '#4cc3d6', '#c9f4fa')}${palm(46, 200, .9)}${palm(360, 210, 1, -1)}
@@ -72,17 +60,17 @@ const S = {
     ${waves(150, '#4cc3d6', '#c9f4fa')}${palm(60, 250, 1.1)}${palm(350, 250, 1.1, -1)}
     <rect y="245" width="400" height="115" fill="#f6dfa4"/>
     <path d="M60 190 Q200 262 340 190" fill="none" stroke="${INK}" stroke-width="5"/><path d="M70 196 Q200 262 330 196 Q200 288 70 196Z" fill="#ff9ec0" ${ST}/><path d="M80 204 Q200 268 320 204" fill="none" stroke="#fff" stroke-width="3" stroke-dasharray="8 8"/>
-    ${person('masha', 160, 200, { extra: sleepMask, delay: .4, scale: .9, body: false })}${person('anton', 245, 205, { extra: sleepMask, delay: 0, scale: .9, body: false })}${zzz(285, 150)}`),
+    ${person('masha', 160, 200, { acc: 'sleep', delay: .4, scale: .9, body: false })}${person('anton', 245, 205, { acc: 'sleep', delay: 0, scale: .9, body: false })}${zzz(285, 150)}`),
   icecream: () => wrap(`${skyRect('sI', '#9be7ff', '#fff4d6', 360)}${sun(70, 50, 30, '#ffe66b')}${cloud(220, 40, .9)}
     ${waves(170, '#4cc3d6', '#c9f4fa')}${palm(360, 230, 1, -1)}
     <rect y="230" width="400" height="130" fill="#f6dfa4"/><path d="M0 232 q50 -14 100 0 t100 0 t100 0 t100 0" fill="none" stroke="#fff" stroke-width="5" opacity=".8"/>
-    ${person('masha', 118, 150, { delay: .3, extra: '' })}${person('anton', 282, 150, { delay: 0 })}
+    ${person('masha', 118, 150, { delay: .3 })}${person('anton', 282, 150, { delay: 0 })}
     ${cone(168, 232, '#ff9ec0', '#ffe66b')}${cone(232, 232, '#8fe0a3', '#ffb347')}`),
   snorkelPm: () => wrap(`${skyRect('sP', '#9be7ff', '#e6f7fb', 170)}${sun(80, 52, 26, '#fff0a8')}${cloud(250, 30, .9)}
     <rect y="170" width="400" height="200" fill="#4cc3d6"/>${skyRect('sW2', '#4cc3d6', '#157f98', 360).replace('<rect width="400" height="360"', '<rect y="190" width="400" height="170"')}
     ${waves(176, '#4cc3d6', '#c9f4fa')}${swim('greenturtle', 260, 74, 0, 20)}${swim('napoleon', 300, 62, 7, 18, true)}${swim('clown', 230, 30, 3, 10)}${swim('blacktip', 320, 54, 10, 22)}
     ${bubbles}${reef}
-    ${person('masha', 120, 172, { extra: maskOn, delay: .3, body: false })}${person('anton', 280, 172, { extra: maskOn, delay: 0, body: false })}
+    ${person('masha', 120, 172, { acc: 'snorkel', delay: .3, body: false })}${person('anton', 280, 172, { acc: 'snorkel', delay: 0, body: false })}
     ${waves(196, '#4cc3d6', '#c9f4fa', 'waveB').replace('fill="#4cc3d6"', 'fill="#4cc3d6" fill-opacity=".5"')}`),
   sunset: () => wrap(`${skyRect('sS', '#ff6f91', '#ffc27a', 360)}${sun(200, 178, 46, '#fff0a8')}
     ${cloud(20, 50, 1, 'drift', '#ffd1c4')}${cloud(250, 80, .9, 'drift2', '#ffd1c4')}
@@ -103,7 +91,7 @@ const S = {
     ${villa(190, 170, true)}
     <rect y="262" width="400" height="98" fill="#2c3a6b"/>
     <rect x="100" y="238" width="200" height="48" rx="14" fill="#fff" ${ST}/><rect x="104" y="256" width="192" height="30" rx="10" fill="#8fb8ff" ${ST}/>
-    ${person('masha', 150, 232, { extra: sleepMask, delay: .5, scale: .8, body: false })}${person('anton', 250, 232, { extra: sleepMask, delay: 0, scale: .8, body: false })}
+    ${person('masha', 150, 232, { acc: 'sleep', delay: .5, scale: .8, body: false })}${person('anton', 250, 232, { acc: 'sleep', delay: 0, scale: .8, body: false })}
     <path d="M104 262 q96 20 192 0 v24 h-192z" fill="#4aa3ff" ${ST}/>${zzz(290, 214)}`),
 };
 
@@ -129,4 +117,14 @@ export const SCENE_LIST = [
 export function sceneAt(hour) {
   const h = hour < 5 ? hour + 24 : hour;
   return SCENE_LIST.find(s => h >= s.from && h < s.to) || SCENE_LIST[SCENE_LIST.length - 1];
+}
+
+// открытка «мы на пляже» для вкладки «Мы»
+export function postcardSVG() {
+  return `<svg class="scene" viewBox="0 0 400 300" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+    ${skyRect('sPc', '#ff9ec0', '#ffd9a0', 300)}${sun(300, 120, 30, '#fff0a8')}${cloud(30, 40, 1)}
+    ${waves(150, '#4cc3d6', '#c9f4fa')}${palm(46, 230, 1.1)}${palm(360, 230, 1.1, -1)}
+    <rect y="205" width="400" height="100" fill="#f6dfa4"/>
+    ${person('masha', 160, 140, { delay: .3 })}${person('anton', 245, 140, { delay: 0 })}
+    <path class="beat" d="M200 70 q-10 -14 -20 -2 q-8 12 20 28 q28 -16 20 -28 q-10 -12 -20 2z" fill="#ff6b8a" ${ST}/></svg>`;
 }

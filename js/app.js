@@ -4,17 +4,18 @@ import { isSeen, seenCount, seenOnDay, bingoCard, bingoMarks, bingoLines, quests
 import { getImage, prefetchAll } from './images.js';
 import { startSync, syncNow, syncEnabled, status } from './sync.js';
 import { artSVG } from './art.js';
-import { SCENE_LIST, sceneAt, islandHour } from './scenes.js';
+import { SCENE_LIST, sceneAt, islandHour, postcardSVG } from './scenes.js';
+import { avatarSVG, avatarBg } from './pixel.js';
 
 const $app = document.getElementById('app');
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const ui = { tab: 'home', cat: 'all', q: '', sheet: null, real: false, preview: null, scroll: {} };
 
 const PEOPLE = {
-  'Маша': { img: 'img/masha.jpg', verb: 'Отметила', ring: '#ff8fa3' },
-  'Антон': { img: 'img/anton.jpg', verb: 'Отметил', ring: '#4aa3ff' },
+  'Маша': { key: 'masha', verb: 'Отметила', ring: '#ff8fa3' },
+  'Антон': { key: 'anton', verb: 'Отметил', ring: '#4aa3ff' },
 };
-const avatar = (name, cls = '') => PEOPLE[name] ? `<img class="av ${cls}" src="${PEOPLE[name].img}" alt="${esc(name)}" style="--ring:${PEOPLE[name].ring}">` : '';
+const avatar = (name, cls = '') => PEOPLE[name] ? `<span class="av ${cls}" title="${esc(name)}" style="--ring:${PEOPLE[name].ring};background:${avatarBg(PEOPLE[name].key)}">${avatarSVG(PEOPLE[name].key)}</span>` : '';
 const stars = r => '★'.repeat(RARITY[r].stars) + '☆'.repeat(5 - RARITY[r].stars);
 const art = s => `<div class="photo"><div class="art-wrap${s.cat === 'moments' ? ' mom' : ''}">${artSVG(s.id)}</div></div>`;
 const fmtDay = d => d ? `${d.slice(6)}.${d.slice(4, 6)}` : '';
@@ -28,7 +29,7 @@ function renderSetup() {
       <h1>Мальдивы<br><small>наш покедекс</small></h1>
       <p class="sub">Кто сейчас держит телефон?</p>
       <div class="who">
-        ${Object.entries(PEOPLE).map(([n, p]) => `<button class="whobtn" data-who="${n}"><img src="${p.img}" alt="" style="--ring:${p.ring}"><b>${n}</b></button>`).join('')}
+        ${Object.entries(PEOPLE).map(([n, p]) => `<button class="whobtn" data-who="${n}">${avatar(n, 'huge')}<b>${n}</b></button>`).join('')}
       </div>
       <p class="hint">Коллекция у вас общая. Отметки обоих видны сразу.</p>
     </div>`;
@@ -156,7 +157,7 @@ function usView() {
   const who = Object.entries(byWho).map(([n, c]) => `${avatar(n, 'tiny')} ${esc(n)}: ${c}`).join(' &nbsp; ') || '—';
   return `
     <h2>Наша поездка</h2>
-    <div class="polaroid"><img src="img/couple.jpg" alt="Маша и Антон"><span class="tape"></span><p>Маша и Антон · Furaveri</p></div>
+    <div class="polaroid"><div class="pcard">${postcardSVG()}</div><span class="tape"></span><p>Маша и Антон · Furaveri</p></div>
     <div class="stats">
       <div><b>${seenCount()}</b>видов</div><div><b>${sc.speciesPts}</b>за находки</div>
       <div><b>${sc.questPts}</b>за задания</div><div><b>${sc.bingoPts}</b>за бинго</div>
