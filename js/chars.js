@@ -13,7 +13,7 @@ const PAL = {
     hair: '#b2562b', hairD: '#7c391b', hairL: '#d77f48', skin: '#f0c29c', skinD: '#d9a07a',
     eye: '#2a1d1a', blush: '#e49a86', mouth: '#8a4a3a',
     beard: '#a2512a', beardD: '#7a3a1c', hood: '#f1e6d3', hoodD: '#cdb89d', hoodL: '#fff8ec',
-    strap: '#f1e6d3', glass: '#22222b', lens: '#cfe8f5', tee: '#e6dcc8',
+    strap: '#f1e6d3', glass: '#3d3d52', lens: '#cfe8f5', tee: '#e6dcc8',
     pants: '#5aa6c9', pantsD: '#3f86a8', shoe: '#a2693f', sole: '#7a4a2a',
     pack: '#f1e6d3', packD: '#cdb89d',
   },
@@ -112,7 +112,7 @@ function drawFront(x, who, step, b, mode, acc) {
       rect(x, gx + 1, 6 + b, 2, 1, '#fbfdff');
     }
     rect(x, 8, 5 + b, 1, 1, P.glass);
-    if (mode === 'hug') { rect(x, 5, 6 + b, 2, 1, P.hairD); rect(x, 10, 6 + b, 2, 1, P.hairD); } else {
+    if (mode === 'hug') { rect(x, 5, 6 + b, 2, 1, '#8a5a40'); rect(x, 10, 6 + b, 2, 1, '#8a5a40'); } else {
       dot(x, 6, 6 + b, P.eye); dot(x, 10, 6 + b, P.eye);
     }
   }

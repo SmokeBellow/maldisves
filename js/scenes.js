@@ -45,6 +45,42 @@ const cone = (x, y, a = '#ff9ec0', b = '#ffe66b') => `<g transform="translate(${
 const bat = (x, y, d, dur) => `<g class="fly" style="--y:${y}px;animation-delay:${d}s;animation-duration:${dur}s"><path d="M0 0 q10 -14 22 -4 q-6 2 -8 8 q-6 -6 -14 -4z M0 0 q-10 -14 -22 -4 q6 2 8 8 q6 -6 14 -4z" fill="#33293c" ${ST2}/><circle cx="0" cy="3" r="5" fill="#33293c" ${ST2}/></g>`;
 const crow = (x, y) => `<g transform="translate(${x} ${y})"><g class="bob"><ellipse cx="0" cy="0" rx="14" ry="11" fill="#33333f" ${ST2}/><circle cx="-12" cy="-8" r="8" fill="#33333f" ${ST2}/><path d="M-19 -9 l-9 3 l9 3z" fill="#16425b"/><circle cx="-13" cy="-9" r="2" fill="#fff"/><path d="M-4 10 v8 M5 10 v8" stroke="${INK}" stroke-width="3" stroke-linecap="round"/></g></g>`;
 
+
+const plumeria = (x, y, r = 7) => `<g transform="translate(${x} ${y})">${[0, 72, 144, 216, 288].map(a => `<ellipse cx="0" cy="${-r * 0.8}" rx="${r * 0.55}" ry="${r * 0.85}" fill="#fff" ${ST2} transform="rotate(${a})"/>`).join('')}<circle r="${r * 0.4}" fill="#ffd45e" ${ST2}/></g>`;
+// красиво накрытый стол для ужина: скатерть, рыба и лобстер, коктейль, кокос, свеча-фонарь, цветы
+const dinnerTable = () => {
+  const scallops = 'q-8.7 14 -17.4 0 '.repeat(20);
+  return `
+  <path d="M30 258 H370 V288 ${scallops}Z" fill="#fff6e2" ${ST}/><path d="M30 276 H370" stroke="#ff8a5b" stroke-width="3" stroke-dasharray="6 6"/>
+  <rect x="22" y="250" width="356" height="12" rx="6" fill="#fffaf0" ${ST}/>
+  ${plumeria(62, 274, 8)}${plumeria(338, 274, 8)}${plumeria(200, 276, 7)}
+  <path d="M82 244 v10 M78 244 v4 M86 244 v4" stroke="${INK}" stroke-width="2" stroke-linecap="round"/><path d="M188 244 v10" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>
+  <!-- тарелка с рыбой -->
+  <ellipse cx="128" cy="248" rx="36" ry="9" fill="#fff" ${ST}/><ellipse cx="128" cy="247" rx="26" ry="6" fill="#f1ece0"/>
+  <path d="M108 245 q18 -12 38 0 q-18 9 -38 0z" fill="#e8a65c" ${ST2}/><path d="M146 245 l8 -6 l-1 12z" fill="#e8a65c" ${ST2}/>
+  <path d="M118 242 l4 6 M126 240 l4 7 M134 241 l4 6" stroke="#8a5530" stroke-width="2" stroke-linecap="round"/><circle cx="113" cy="245" r="1.3" fill="${INK}"/>
+  <circle cx="106" cy="251" r="4" fill="#ffe66b" ${ST2}/><path d="M103 251 h6 M106 248 v6" stroke="#f4c430" stroke-width="1"/>
+  <circle cx="148" cy="252" r="3" fill="#7fd08a" ${ST2}/><circle cx="141" cy="253" r="3" fill="#5cc98a" ${ST2}/><circle cx="154" cy="250" r="2.6" fill="#ff6b6b" ${ST2}/>
+  <!-- тарелка с лобстером -->
+  <ellipse cx="272" cy="248" rx="36" ry="9" fill="#fff" ${ST}/><ellipse cx="272" cy="247" rx="26" ry="6" fill="#f1ece0"/>
+  <path d="M252 246 q14 -14 34 -4 q-2 10 -34 4z" fill="#e0584f" ${ST2}/><path d="M262 241 v7 M268 240 v8 M274 241 v7 M280 242 v6" stroke="#b83c35" stroke-width="1.6"/>
+  <path d="M286 242 q10 -2 10 4 q-6 4 -10 -1" fill="#e0584f" ${ST2}/><path d="M252 246 l-6 -5 M252 246 l-7 1" stroke="${INK}" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="294" cy="252" r="4" fill="#ff6b6b" ${ST2}/><circle cx="255" cy="252" r="3" fill="#7fd08a" ${ST2}/><circle cx="262" cy="253" r="3" fill="#5cc98a" ${ST2}/>
+  <path d="M296 244 v10 M300 244 v4 M304 244 v4" stroke="${INK}" stroke-width="2" stroke-linecap="round" transform="translate(30 0)"/>
+  <!-- коктейль -->
+  <path d="M168 224 h14 l-2 28 h-10z" fill="#ff7aa8" fill-opacity=".9" ${ST2}/><path d="M169 232 h12" stroke="#fff" stroke-width="2" opacity=".7"/>
+  <path d="M176 224 l6 -16" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M176 224 l6 -16" stroke="#fff" stroke-width="2" stroke-dasharray="3 3" stroke-linecap="round"/>
+  <circle cx="168" cy="225" r="5" fill="#ffb347" ${ST2}/>
+  <!-- кокос -->
+  <circle cx="234" cy="242" r="11" fill="#9a6b43" ${ST2}/><ellipse cx="234" cy="233" rx="7" ry="3" fill="#f6efe0" ${ST2}/>
+  <path d="M236 233 l6 -16" stroke="${INK}" stroke-width="4" stroke-linecap="round"/><path d="M236 233 l6 -16" stroke="#ffd45e" stroke-width="2" stroke-linecap="round"/>
+  <path d="M238 220 l12 -4 l-4 10z" fill="#ff6b8a" ${ST2}/>
+  <!-- свеча в фонаре -->
+  <circle class="pulse" style="transform-origin:206px 238px" cx="206" cy="238" r="30" fill="#ffd45e" opacity=".22"/>
+  <rect x="198" y="226" width="16" height="26" rx="4" fill="#ffe9a8" fill-opacity=".9" ${ST2}/><rect x="196" y="222" width="20" height="5" rx="2" fill="#8a5f3d" ${ST2}/>
+  <rect x="203" y="238" width="6" height="14" rx="1" fill="#fff" ${ST2}/><path class="flame" d="M206 237 q-6 -7 0 -15 q6 8 0 15z" fill="#ffb23d" ${ST2}/>`;
+};
+
 // ---------- сцены ----------
 const wrap = inner => `<svg class="scene" viewBox="0 0 400 360" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">${defs}${inner}</svg>`;
 
@@ -88,9 +124,8 @@ const S = {
     ${waves(150, '#2a4f8a', '#ff9ec0')}${palm(40, 250, 1)}${palm(364, 250, 1, -1)}
     <rect y="210" width="400" height="150" fill="#d9b87a"/>
     <path d="M10 56 Q100 100 200 62 T390 56" fill="none" stroke="${INK}" stroke-width="3"/>${[30, 80, 130, 190, 250, 300, 350].map((x, i) => `<circle class="twinkle" style="animation-delay:${i * .3}s" cx="${x}" cy="${72 + Math.sin(i * 1.3) * 12}" r="5" fill="#ffd45e" ${ST2}/>`).join('')}
-    ${person('masha', 105, 352)}${person('anton', 295, 352)}
-    ${table(262)}${plate(120, 258, '<circle cx="0" cy="-4" r="9" fill="#ff8a5b" stroke="#16425b" stroke-width="2"/>')}${plate(280, 258, '<path d="M-16 -3 q16 -14 32 0 q-16 8 -32 0z" fill="#7fd08a" stroke="#16425b" stroke-width="2"/>')}
-    <g transform="translate(200 238)"><rect x="-7" y="0" width="14" height="22" rx="3" fill="#fff" ${ST2}/><path class="flame" d="M0 -4 q-9 -10 0 -22 q9 12 0 22z" fill="#ffb23d" ${ST2}/></g>`),
+    ${person('masha', 105, 334)}${person('anton', 295, 334)}
+    <g transform="translate(0 8)">${dinnerTable()}</g>`),
   night: () => wrap(`${skyRect('sNi', '#0f1b4a', '#2b2f6e', 360)}${starsSky(36)}<circle cx="318" cy="56" r="26" fill="#fff6c9" ${ST}/><circle cx="310" cy="50" r="4" fill="#efe4a8"/><circle cx="326" cy="62" r="5" fill="#efe4a8"/>
     ${waves(168, '#16306b', '#7a8fe0')}${palm(40, 270, 1)}
     ${villa(190, 170, true)}

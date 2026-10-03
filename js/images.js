@@ -16,7 +16,8 @@ export function cachedUrl(title) {
   return null;
 }
 
-const big = u => u.replace(/\/(\d+)px-/, '/480px-');
+// Викимедиа отдаёт только стандартные ширины миниатюр (330, 500, 960...), 480 даёт ошибку
+const big = u => u.replace(/\/(\d+)px-/, '/500px-');
 async function viaSummary(title) {
   const r = await fetch(api(title));
   if (!r.ok) return null;
@@ -26,7 +27,7 @@ async function viaSummary(title) {
 // поиск по статьям: берём первую подходящую статью, у которой есть картинка
 async function viaSearch(lang, query) {
   const q = new URLSearchParams({ action: 'query', format: 'json', origin: '*', generator: 'search', gsrsearch: query, gsrlimit: '6',
-    prop: 'pageimages', piprop: 'thumbnail', pithumbsize: '480', redirects: '1' });
+    prop: 'pageimages', piprop: 'thumbnail', pithumbsize: '500', redirects: '1' });
   const r = await fetch(`https://${lang}.wikipedia.org/w/api.php?${q}`);
   if (!r.ok) return null;
   const pages = Object.values((await r.json()).query?.pages || {}).filter(p => p.thumbnail).sort((a, b) => a.index - b.index);
